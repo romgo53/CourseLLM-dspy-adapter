@@ -2,7 +2,7 @@ import dspy
 from typing import List, Dict
 from md_loader import load_markdown_file
 
-lm = dspy.LM("gemini/gemini-2.0-flash", api_key="AIzaSyDU45KHIpqK7KGruLyscjsBkW7Qb2uVbSc")
+lm = dspy.LM("gemini/gemini-2.0-flash", api_key=os.environ.get("GOOGLE_API_KEY"))
 
 
 class TopicExtractor(dspy.Signature):
