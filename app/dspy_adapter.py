@@ -2,7 +2,7 @@ import re
 from dspy_modules import (TopicExtractor, MaterialToTopicMatcher, List, Dict, dspy)
 import os
 
-lm = dspy.LM(os.environ.get("LM_MODEL", "gemini/gemini-2.5-flash"), api_key=os.environ.get("LM_API_KEY", "AIzaSyDU45KHIpqK7KGruLyscjsBkW7Qb2uVbSc"))
+lm = dspy.LM(os.environ.get("LM_MODEL", "gemini/gemini-2.5-flash"), api_key=os.environ.get("LM_API_KEY", ""))
 
 async def extract_topics_from_texts(text: str) -> List[str]:
     topic_extractor = dspy.Predict(TopicExtractor)
