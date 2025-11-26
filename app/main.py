@@ -5,10 +5,11 @@ from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
 
 from .auth import verify_firebase_token
-from .drive_fetcher import fetch_markdown_files
-from .dspy_adapter import extract_topics_from_texts
+from dspy_adapter import extract_topics_from_texts, match_topics_from_to_material
 
-app = FastAPI(title="DSPy Topic Extractor")
+
+
+app = FastAPI(title="DSPy Topic Extractor", docs_url="/docs", redoc_url="/redoc")
 
 
 class FilesRequest(BaseModel):
@@ -28,12 +29,30 @@ def get_current_user(authorization: str = Header(None)):
 
 
 @app.post("/topics")
-async def topics(request: FilesRequest, user=Depends(get_current_user)):
+async def topics(request: FilesRequest, user: dict = Depends(get_current_user)):
     if not request.file_ids:
         raise HTTPException(status_code=400, detail="file_ids must be a non-empty list")
     files = fetch_markdown_files(request.file_ids)
     if not files:
         raise HTTPException(status_code=404, detail="No files fetched; check IDs or service account permissions")
     texts = list(files.values())
-    topics = extract_topics_from_texts(texts)
+    topics = extract_topics_from_texts(texts[0])
     return {"topics": topics, "file_count": len(files)}
+
+@app.post("/match_topics")
+async def match_topics(request: FilesRequest, user: dict = Depends(get_current_user)):
+    if not request.file_ids:
+        raise HTTPException(status_code=400, detail="file_ids must be a non-empty list")
+    files = fetch_markdown_files(request.file_ids)
+    if not files:
+        raise HTTPException(status_code=404, detail="No files fetched; check IDs or service account permissions")
+    texts = list(files.values())
+    matched_topics = match_topics_from_to_material(texts[0], topics=topics)
+    return {"matched_topics": matched_topics, "file_count": len(files)}
+
+
+# run locally with: uvicorn app.main:app --host
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
